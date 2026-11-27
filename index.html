@@ -822,6 +822,157 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
     display:inline;
     color:var(--rojo);
   }
+
+  /* Tablas compactas en Análisis histórico, Resumen ajustado, Presupuestos, Fondo y Carga masiva */
+  .tabla-compacta thead{display:none}
+  .tabla-compacta table,.tabla-compacta tbody{display:block;width:100%}
+  .tabla-compacta caption{display:block;padding:8px 10px;font-size:12.5px}
+  .tabla-compacta tr{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:4px 8px;
+    padding:8px 10px;
+    border-bottom:1px solid var(--borde);
+  }
+  .tabla-compacta tbody tr:last-child{border-bottom:none}
+  .tabla-compacta td{
+    display:block;
+    padding:0;
+    border:none;
+    text-align:left;
+    font-size:12px;
+  }
+  .tabla-compacta td:first-child{
+    grid-column:1 / -1;
+    margin-bottom:2px;
+    font-weight:700;
+    color:var(--tinta);
+  }
+  .tabla-compacta td.numero{
+    font-size:12px;
+    font-weight:700;
+  }
+  .tabla-compacta td[data-label]::before{
+    content:attr(data-label);
+    display:block;
+    font-size:9.5px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    color:var(--tinta-suave);
+  }
+  .tabla-compacta td.col-span-full{
+    grid-column:1 / -1;
+  }
+  .tabla-compacta td.col-ocultar-movil{display:none}
+  .tabla-compacta td.col-exceso-cero{display:none}
+  .tabla-compacta td.col-exceso-activo{
+    grid-column:1 / -1;
+    margin-top:2px;
+    padding-top:3px;
+    border-top:1px dashed var(--rojo-borde);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .tabla-compacta td.col-exceso-activo::before{
+    display:inline;
+    color:var(--rojo);
+  }
+
+  /* Grid de 2 columnas en Análisis histórico en móvil */
+  .tabla-compacta.grid-2 tr{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .tabla-compacta.grid-2 td:first-child{
+    grid-column:1 / -1;
+  }
+
+  /* Ajustes específicos para inputs dentro de tablas compactas en móvil */
+  .tabla-escenario-edit tr{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px 8px;
+  }
+  .tabla-escenario-edit td:first-child{
+    grid-column:1 / -1;
+  }
+  .tabla-escenario-edit .esc-input{
+    width:100%;
+    max-width:none;
+    min-width:0;
+    margin-top:2px;
+  }
+
+  .tabla-presupuestos-edit tr{
+    grid-template-columns:1fr auto;
+    align-items:center;
+    gap:4px 8px;
+  }
+  .tabla-presupuestos-edit td:first-child{
+    grid-column:1 / 2;
+    margin-bottom:0;
+  }
+  .tabla-presupuestos-edit td.col-grupo-pres{
+    grid-column:1 / 2;
+    grid-row:2;
+    font-size:11px;
+  }
+  .tabla-presupuestos-edit td.col-monto-pres{
+    grid-column:2 / 3;
+    grid-row:1 / 3;
+    text-align:right;
+  }
+  .tabla-presupuestos-edit .cat-nombre-input,
+  .tabla-presupuestos-edit .presupuesto-input{
+    width:100%;
+    max-width:none;
+    min-width:0;
+  }
+
+  /* Carga masiva compacta en móvil */
+  .tabla-masiva-compacta tr{
+    grid-template-columns:auto 1fr auto;
+    align-items:center;
+    gap:3px 8px;
+  }
+  .tabla-masiva-compacta td.col-check-masiva{
+    grid-column:1 / 2;
+    grid-row:1 / 3;
+  }
+  .tabla-masiva-compacta td.col-concepto-masiva{
+    grid-column:2 / 3;
+    font-weight:700;
+    margin-bottom:0;
+  }
+  .tabla-masiva-compacta td.col-importe-masiva{
+    grid-column:3 / 4;
+    text-align:right;
+  }
+  .tabla-masiva-compacta td.col-meta-masiva{
+    grid-column:2 / 4;
+    font-size:11px;
+    color:var(--tinta-suave);
+  }
+  .tabla-masiva-compacta td.col-estado-masiva{
+    grid-column:2 / 4;
+    font-size:11px;
+    font-weight:600;
+  }
+
+  /* Compactar padding y cabecera en móvil para Análisis histórico y otras vistas */
+  .cabecera{flex-direction:column;align-items:stretch;gap:8px}
+  .cabecera button{width:100%!important}
+  .rango-atajos{gap:4px}
+  .rango-atajos button{padding:5px 8px;font-size:11.5px;flex:1 1 auto}
+  .barra-historial{padding:8px 10px;gap:6px}
+  .acciones{gap:6px}
+  .acciones button,.acciones select{flex:1 1 auto}
+  .indicadores{gap:8px;margin:10px 0}
+  .indicador{padding:10px 12px}
+  .indicador strong{font-size:18px}
+  .grafico-caja{padding:12px}
+  .barras-mes{height:125px;gap:5px}
+  .col-mes{min-width:38px}
 }
 </style>
 </head>
@@ -985,7 +1136,7 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
       </div>
     </div>
 
-    <div class="tabla">
+    <div class="tabla tabla-compacta tabla-escenario-edit">
       <table>
         <caption>Detalle editable por categoría (los campos resaltados en amarillo tienen edición manual)</caption>
         <thead>
@@ -998,7 +1149,7 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
       </table>
     </div>
 
-    <div class="tabla">
+    <div class="tabla tabla-compacta">
       <table>
         <caption>Proyección consolidada por ciclo (Escenario ficticio)</caption>
         <thead>
@@ -1158,7 +1309,7 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
         <button id="desmarcarTodosMasivo" type="button" class="secundario">Desmarcar todas</button>
       </div>
 
-      <div id="previaMasivo" class="tabla previa" hidden>
+      <div id="previaMasivo" class="tabla previa tabla-compacta tabla-masiva-compacta" hidden>
         <table>
           <thead>
             <tr>
@@ -1354,7 +1505,7 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
       </div>
     </div>
 
-    <div id="bloqueTablaPresupuestoConsolidado" class="tabla" hidden>
+    <div id="bloqueTablaPresupuestoConsolidado" class="tabla tabla-compacta" hidden>
       <table>
         <caption>Comparativo acumulado por categoría (Presupuesto vs. Real en los ciclos seleccionados)</caption>
         <thead>
@@ -1371,7 +1522,7 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
     </div>
 
     <div class="grid-analisis">
-      <div class="tabla" style="margin:0">
+      <div class="tabla tabla-compacta" style="margin:0">
         <table>
           <caption>Desglose por categoría (mayor a menor)</caption>
           <thead>
@@ -1387,7 +1538,7 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
         </table>
       </div>
 
-      <div class="tabla" style="margin:0">
+      <div class="tabla tabla-compacta" style="margin:0">
         <table>
           <caption>Distribución por medio de pago</caption>
           <thead>
@@ -1403,7 +1554,7 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
       </div>
     </div>
 
-    <div class="tabla">
+    <div class="tabla tabla-compacta grid-2">
       <table>
         <caption>Top 15 movimientos más altos del período seleccionado</caption>
         <thead>
@@ -1560,7 +1711,7 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
         <button id="btnAlternarEdicionPresupuesto" type="button" class="secundario" style="width:auto;margin:0;padding:5px 11px;font-size:12px">✎ Editar todos los campos</button>
       </div>
       <p class="nota" style="margin-top:6px">Haz clic sobre cualquier <strong>nombre de categoría</strong> o <strong>monto</strong> para editarlo en línea. Al terminar, pulsa <strong>Guardar presupuesto y nombres</strong> para confirmar en todos los ciclos y en la nube.</p>
-      <div class="tabla">
+      <div class="tabla tabla-compacta tabla-presupuestos-edit">
         <table>
           <thead><tr><th>Nombre de categoría</th><th>Grupo</th><th>Presupuesto COP</th></tr></thead>
           <tbody id="camposPresupuesto"></tbody>
@@ -1670,7 +1821,7 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
 
     <p id="aportesReales" class="nota"></p>
 
-    <div class="tabla">
+    <div class="tabla tabla-compacta">
       <table>
         <caption>Proyección con las metas de cada ciclo</caption>
         <thead>
@@ -1684,7 +1835,7 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
       </table>
     </div>
 
-    <div class="tabla">
+    <div class="tabla tabla-compacta">
       <table>
         <caption>Metas frente a aportes registrados</caption>
         <thead>
@@ -2359,10 +2510,11 @@ function construirTablaCamposPresupuesto(){
 
       // Celda Grupo
       const tdGrupo = celda(fila, grupoNombre);
-      tdGrupo.className = "nota";
+      tdGrupo.className = "nota col-grupo-pres";
 
       // Celda Presupuesto COP (vista cerrada formateada + input numérico oculto hasta hacer clic)
       const tdMonto = document.createElement("td");
+      tdMonto.className = "col-monto-pres";
       const visMonto = document.createElement("span");
       visMonto.className = "celda-cerrada celda-cerrada-monto vista-monto-cat";
       visMonto.tabIndex = 0;
@@ -3044,11 +3196,11 @@ function recalcularSoloIndicadoresEscenario(c, gastosIncluidos, gastadoOrig, can
     tr.onclick = () => { $("cicloEscenario").value = cic.id; mostrarEscenario(); };
 
     celda(tr, cic.nombre);
-    celda(tr, pesos(ing), "numero");
-    celda(tr, pesos(planC), "numero");
-    celda(tr, pesos(realC), "numero");
-    celda(tr, pesos(difPlan), "numero" + (difPlan < 0 ? " rojo" : " verde"));
-    celda(tr, pesos(difReal), "numero" + (difReal < 0 ? " rojo" : " verde"));
+    const tdIng = celda(tr, pesos(ing), "numero"); tdIng.dataset.label = "Ingreso";
+    const tdPln = celda(tr, pesos(planC), "numero"); tdPln.dataset.label = "Presupuesto";
+    const tdRl = celda(tr, pesos(realC), "numero"); tdRl.dataset.label = "Gasto";
+    const tdDp = celda(tr, pesos(difPlan), "numero col-ocultar-movil" + (difPlan < 0 ? " rojo" : " verde")); tdDp.dataset.label = "Saldo plan";
+    const tdDr = celda(tr, pesos(difReal), "numero" + (difReal < 0 ? " rojo" : " verde")); tdDr.dataset.label = "Saldo gasto";
     tbCons.appendChild(tr);
   });
 }
@@ -3118,6 +3270,7 @@ function mostrarEscenario(){
 
     // Celda Presupuesto editable
     const tdPlan = document.createElement("td");
+    tdPlan.dataset.label = "Presupuesto";
     const inpPlan = document.createElement("input");
     inpPlan.type = "number";
     inpPlan.min = "0";
@@ -3130,6 +3283,7 @@ function mostrarEscenario(){
 
     // Celda Gasto editable
     const tdGasto = document.createElement("td");
+    tdGasto.dataset.label = "Gasto";
     const inpGasto = document.createElement("input");
     inpGasto.type = "number";
     inpGasto.min = "0";
@@ -3142,7 +3296,9 @@ function mostrarEscenario(){
 
     // Celdas Disponible y Exceso dinámicas
     const tdDisp = celda(fila, pesos(vals.plan - vals.gasto), "numero" + (vals.plan - vals.gasto < 0 ? " rojo" : ""));
-    const tdExc = celda(fila, pesos(e), "numero" + (e > 0 ? " rojo" : ""));
+    tdDisp.dataset.label = "Disponible";
+    const tdExc = celda(fila, pesos(e), "numero" + (e > 0 ? " rojo col-exceso-activo" : " col-exceso-cero"));
+    tdExc.dataset.label = "Exceso";
 
     const onEditFila = () => {
       const nuevoPlan = Math.max(0, Math.round(Number(inpPlan.value) || 0));
@@ -3165,7 +3321,7 @@ function mostrarEscenario(){
       tdDisp.textContent = pesos(dispActual);
       tdDisp.className = "numero" + (dispActual < 0 ? " rojo" : "");
       tdExc.textContent = pesos(excActual);
-      tdExc.className = "numero" + (excActual > 0 ? " rojo" : "");
+      tdExc.className = "numero" + (excActual > 0 ? " rojo col-exceso-activo" : " col-exceso-cero");
       fila.classList.toggle("exceso", excActual > 0);
       relleno.style.width = (nuevoPlan ? Math.min(100, 100 * nuevoGasto / nuevoPlan) : nuevoGasto ? 100 : 0) + "%";
 
@@ -3667,21 +3823,33 @@ function mostrarFondo(){
     const descuento=saldo*f.impuestoRetiro/100;
     const fila=document.createElement("tr");
     celda(fila,c.nombre);
+    const lblProy=["Inicial","Aporte","Rendim.","Saldo final","Desc. retiro","Neto retiro"];
     [inicial,c.meta,rendimiento,saldo,descuento,saldo-descuento]
-      .forEach(n => celda(fila,pesos(n),"numero"));
+      .forEach((n,idxP) => {
+        const ocultaMov = (idxP===0 || idxP===4) ? " col-ocultar-movil" : "";
+        const tdP = celda(fila,pesos(n),"numero"+ocultaMov);
+        tdP.dataset.label = lblProy[idxP];
+      });
     $("proyeccionFondo").appendChild(fila);
 
     const registros=movimientosCiclo(c).filter(m => m.categoria==="Pibank");
     const real=registros.reduce((s,m) => s+m.importe,0);
     const comparacion=document.createElement("tr");
-    celda(comparacion,c.nombre);
-    celda(comparacion,pesos(c.meta),"numero");
-    celda(comparacion,registros.length ? pesos(real) : "Sin registros","numero");
-    celda(comparacion,pesos(Math.max(0,c.meta-real)),"numero");
-    celda(comparacion,pesos(Math.max(0,real-c.meta)),"numero");
-    celda(comparacion,!registros.length
+    const estadoFondoTxt = !registros.length
       ? hoy()<c.inicio ? "Ciclo futuro · Sin registros" : "Pendiente de registrar"
-      : real>=c.meta ? "Meta cubierta en lo registrado" : "Aporte parcial");
+      : real>=c.meta ? "Meta cubierta en lo registrado" : "Aporte parcial";
+    const tdNombreComp = celda(comparacion,c.nombre);
+    const subEstadoF = document.createElement("span");
+    subEstadoF.className = "detalle";
+    subEstadoF.style.marginLeft = "6px";
+    subEstadoF.textContent = "· " + estadoFondoTxt;
+    tdNombreComp.appendChild(subEstadoF);
+
+    const tdMetaF = celda(comparacion,pesos(c.meta),"numero"); tdMetaF.dataset.label = "Meta";
+    const tdRealF = celda(comparacion,registros.length ? pesos(real) : "$ 0","numero"); tdRealF.dataset.label = "Registrado";
+    const tdPendF = celda(comparacion,pesos(Math.max(0,c.meta-real)),"numero"); tdPendF.dataset.label = "Pendiente";
+    const tdSobreF = celda(comparacion,pesos(Math.max(0,real-c.meta)),"numero col-ocultar-movil"); tdSobreF.dataset.label = "Sobre meta";
+    const tdLectF = celda(comparacion,estadoFondoTxt,"col-ocultar-movil");
     $("comparacionFondo").appendChild(comparacion);
   });
 
@@ -3790,6 +3958,7 @@ function dibujarCarga(){
     const fila=document.createElement("tr");
     if(f.error) fila.className="exceso";
     const seleccion=document.createElement("td");
+    seleccion.className="col-check-masiva";
     const check=document.createElement("input");
     check.type="checkbox";
     check.checked=!!f.seleccionada;
@@ -3798,14 +3967,14 @@ function dibujarCarga(){
     check.onchange=() => {f.seleccionada=check.checked;resumenCarga();};
     seleccion.appendChild(check);
     fila.appendChild(seleccion);
-    celda(fila,String(f.linea));
-    celda(fila,f.m ? f.m.fecha : "—");
-    celda(fila,f.m ? f.m.categoria : "—");
-    celda(fila,f.m ? f.m.concepto : f.original);
-    celda(fila,f.m ? pesos(f.m.importe) : "—","numero");
-    celda(fila,f.m ? f.m.medio : "—");
-    celda(fila,f.error || (f.duplicada
-      ? "Posible duplicado: revisar" : "Lista para añadir"));
+    celda(fila,String(f.linea),"col-ocultar-movil");
+    celda(fila,f.m ? f.m.fecha : "—","col-ocultar-movil");
+    celda(fila,f.m ? f.m.categoria : "—","col-ocultar-movil");
+    const tdConcM = celda(fila,f.m ? f.m.concepto : f.original,"col-concepto-masiva");
+    const tdImpM = celda(fila,f.m ? pesos(f.m.importe) : "—","numero col-importe-masiva");
+    const tdMedM = celda(fila,f.m ? (f.m.fecha + " · " + f.m.categoria + " · " + f.m.medio) : ("Fila " + f.linea),"col-meta-masiva");
+    const tdEstM = celda(fila,f.error || (f.duplicada
+      ? "Posible duplicado: revisar" : "Lista para añadir"),"col-estado-masiva"+(f.error ? " rojo" : ""));
     $("filasMasivo").appendChild(fila);
   });
   $("previaMasivo").hidden=false;
@@ -4175,10 +4344,10 @@ function mostrarAnalisisHistorico(){
       barra.appendChild(rel);
       tdCat.appendChild(barra);
 
-      celda(tr, pesos(p), "numero");
-      celda(tr, pesos(r), "numero");
-      celda(tr, (diff >= 0 ? "+" : "") + pesos(diff), "numero" + (diff < 0 ? " rojo" : " verde"));
-      celda(tr, p > 0 ? pct.toLocaleString("es-CO",{maximumFractionDigits:1}) + "%" : "Sin plan", "numero");
+      const tdP = celda(tr, pesos(p), "numero"); tdP.dataset.label = "Presupuesto";
+      const tdR = celda(tr, pesos(r), "numero"); tdR.dataset.label = "Gasto real";
+      const tdD = celda(tr, (diff >= 0 ? "+" : "") + pesos(diff), "numero" + (diff < 0 ? " rojo" : " verde")); tdD.dataset.label = "Diferencia";
+      const tdPct = celda(tr, p > 0 ? pct.toLocaleString("es-CO",{maximumFractionDigits:1}) + "%" : "Sin plan", "numero col-ocultar-movil"); tdPct.dataset.label = "Ejecución";
       tbVs.appendChild(tr);
     });
   }else{
@@ -4402,10 +4571,10 @@ function mostrarAnalisisHistorico(){
     barra.appendChild(rel);
     tdNombre.appendChild(barra);
 
-    celda(tr, String(info.cant), "numero");
-    celda(tr, pesos(info.suma), "numero");
-    celda(tr, pct.toLocaleString("es-CO",{maximumFractionDigits:1}) + "%", "numero");
-    celda(tr, pesos(info.suma / numMesesActivos), "numero");
+    const tdCnt = celda(tr, String(info.cant), "numero col-ocultar-movil"); tdCnt.dataset.label = "Movs.";
+    const tdSum = celda(tr, pesos(info.suma), "numero"); tdSum.dataset.label = "Total (" + info.cant + ")";
+    const tdPctC = celda(tr, pct.toLocaleString("es-CO",{maximumFractionDigits:1}) + "%", "numero"); tdPctC.dataset.label = "Partic.";
+    const tdPrm = celda(tr, pesos(info.suma / numMesesActivos), "numero"); tdPrm.dataset.label = "Prom./mes";
     tbCat.appendChild(tr);
   });
 
@@ -4427,9 +4596,9 @@ function mostrarAnalisisHistorico(){
     tr.onclick = () => abrirDetalleAnalisis({ tituloFiltro: "Medio: " + med });
     const pct = total > 0 ? (100 * info.suma / total) : 0;
     celda(tr, med);
-    celda(tr, String(info.cant), "numero");
-    celda(tr, pesos(info.suma), "numero");
-    celda(tr, pct.toLocaleString("es-CO",{maximumFractionDigits:1}) + "%", "numero");
+    const tdMc = celda(tr, String(info.cant), "numero"); tdMc.dataset.label = "Movs.";
+    const tdMs = celda(tr, pesos(info.suma), "numero"); tdMs.dataset.label = "Total";
+    const tdMp = celda(tr, pct.toLocaleString("es-CO",{maximumFractionDigits:1}) + "%", "numero"); tdMp.dataset.label = "Partic.";
     tbMed.appendChild(tr);
   });
 
@@ -4441,11 +4610,16 @@ function mostrarAnalisisHistorico(){
     .slice(0, 15)
     .forEach(m => {
       const tr = document.createElement("tr");
-      celda(tr, m.fecha);
-      celda(tr, conceptoDe(m));
-      celda(tr, m.categoria);
-      celda(tr, m.medio);
-      celda(tr, pesos(m.importe), "numero");
+      const tdF = celda(tr, visible(m.fecha), "col-ocultar-movil");
+      const tdConc = celda(tr, conceptoDe(m));
+      const subMeta = document.createElement("div");
+      subMeta.className = "detalle";
+      subMeta.textContent = visible(m.fecha) + " · " + m.categoria + " · " + m.medio;
+      tdConc.appendChild(subMeta);
+      const tdCatTop = celda(tr, m.categoria, "col-ocultar-movil");
+      const tdMedTop = celda(tr, m.medio, "col-ocultar-movil");
+      const tdImpTop = celda(tr, pesos(m.importe), "numero col-span-full");
+      tdImpTop.dataset.label = "Importe";
       tbTop.appendChild(tr);
     });
 }
