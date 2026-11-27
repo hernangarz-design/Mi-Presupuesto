@@ -858,12 +858,20 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
 .deuda-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;border:1px solid var(--borde);border-radius:11px;margin:8px 0;background:#fff}
 .deuda-item small{display:block;color:var(--tinta-suave);margin-top:3px}
 .deuda-item button{width:auto;margin:0;padding:7px 10px;font-size:12px}
+.deuda-item .acciones-deuda{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.check-deuda{display:flex;align-items:center;gap:8px;padding:8px 0;font-weight:600}
+.check-deuda input{width:18px;height:18px;flex:0 0 auto}
 .deuda-item .deuda-txt{min-width:0;overflow-wrap:anywhere}
 .deuda-prioridad{color:var(--acento);font-weight:700}
 .integracion-deuda{margin-top:18px;padding:16px;border:1px solid var(--borde);border-radius:14px;background:#f8fafc}
 .integracion-deuda h3{margin-top:0}
 .integracion-deuda input,.integracion-deuda select{width:100%}
-@media(max-width:620px){.deuda-resumen{grid-template-columns:1fr}.deuda-item{align-items:flex-start}.deuda-item button{min-height:38px}.integracion-deuda{padding:12px}}
+.deuda-contexto{margin:18px 0;padding:16px;border:1px solid var(--borde);border-radius:14px;background:#f8fafc}
+.deuda-contexto h3{margin:0 0 6px}
+.deuda-contexto h4{margin:16px 0 8px}
+.deuda-contexto-resumen{padding:12px;border-radius:10px;background:#fff;border:1px solid var(--borde);font-weight:600;align-self:end}
+.deuda-contexto .tabla{max-width:100%;overflow-x:auto}
+@media(max-width:620px){.deuda-resumen{grid-template-columns:1fr}.deuda-item{align-items:flex-start}.deuda-item button{min-height:38px}.integracion-deuda{padding:12px}.deuda-contexto{padding:12px}.deuda-contexto-resumen{font-size:13px}}
 
 </style>
 </head>
@@ -896,35 +904,61 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
 <section id="panel-deudas" role="tabpanel" aria-labelledby="tab-deudas" hidden>
   <div class="tarjeta">
     <h2>Liquidación inteligente de deudas</h2>
-    <p class="nota">Registra obligaciones de bancos, tarjetas, sobregiros o fintech. El simulador convierte la tasa efectiva anual a mensual y compara una estrategia de pago por mayor tasa (avalancha).</p>
+    <p class="nota">Registra tus obligaciones actuales y los créditos que estés considerando tomar. Compara avalancha y bola de nieve, y registra los pagos reales dentro de tu presupuesto habitual.</p>
     <div class="aviso">Simulación orientativa: usa las tasas y condiciones de tu extracto. No incluye seguros, cuotas de manejo, mora, impuestos, cargos futuros ni cambios de tasa. Confirma con cada entidad el valor exacto de cancelación.</div>
-    <div><label for="presupuestoDeudas">Presupuesto mensual total para pagar deudas (COP)</label><input id="presupuestoDeudas" type="number" min="1" step="1" required placeholder="Cuánto puedes destinar cada mes" /></div>
+    <p id="avisoSobrecupoDeuda" class="aviso" role="status">Colpatria: saldo $4.382.000 frente a cupo $3.700.000; excedente $682.000. Pago mínimo informado: $291.000. Prioridad de regularización, pendiente tasa EA.</p>
+
+    <div class="deuda-contexto">
+      <h3>Tu flujo de pagos según el respaldo</h3>
+      <p class="nota">Esta sección lee los ciclos y movimientos reales cargados en la aplicación. El respaldo tiene presupuestos por categoría y pagos registrados, pero no contiene un registro separado de saldos insolutos para todas las fintech; por eso los pagos históricos no se convierten automáticamente en capital pendiente.</p>
+      <div class="aviso">
+        <strong>Lectura de tu situación de noviembre:</strong> “Otras Deudas” es tu bolsa presupuestal para cubrir préstamos fintech de una sola cuota (Lineru, Doctor Peso, Solventa, Crédito 365 y similares); no representa por sí sola un saldo único. Noviembre fue un mes extraordinario: menor flujo proyectado por el cambio en descuentos parafiscales (aprox. $1.000.000 menos), pago de prediales atrasados y normalización de Lulo tras tres cuotas vencidas más la cuota actual. Separa esos gastos extraordinarios del plan recurrente para que el simulador no los trate como capacidad mensual permanente.
+      </div>
+      <p class="nota">Colpatria queda marcada como prioridad operativa por estar $682.000 por encima del cupo. Mantén al día el mínimo informado de $291.000 y confirma tasa EA, intereses y cargos por sobregiro. La prioridad matemática de avalancha se definirá cuando tengamos esa tasa; estar sobregirada justifica regularizarla, pero no permite calcular todavía el ahorro exacto frente a otras deudas.</p>
+      <div class="columnas">
+        <div><label for="cicloContextoDeudas">Ciclo para revisar y usar como referencia</label><select id="cicloContextoDeudas"></select></div>
+        <div class="deuda-contexto-resumen" id="resumenContextoDeudas" aria-live="polite">Cargando datos del presupuesto…</div>
+      </div>
+      <div class="acciones"><button type="button" class="secundario" id="usarAsignacionCicloDeudas" style="width:auto">Usar asignación del ciclo en el simulador</button></div>
+      <p class="nota">Al usar esta asignación, recuerda que puede cubrir pagos programados de varias obligaciones. No equivale a dinero adicional libre ni debe atribuirse por completo a una sola deuda.</p>
+      <h4>Presupuesto de pagos por ciclo</h4>
+      <div class="tabla"><table><thead><tr><th>Ciclo</th><th>Otras deudas</th><th>Colpatria</th><th>Lulo Bank</th><th>Total asignado</th><th>Movimientos registrados</th></tr></thead><tbody id="tablaFlujoDeudas"></tbody></table></div>
+      <h4>Movimientos del ciclo seleccionado</h4>
+      <div class="tabla"><table><thead><tr><th>Categoría</th><th>Concepto</th><th>Fecha</th><th>Valor</th></tr></thead><tbody id="tablaMovimientosDeuda"></tbody></table></div>
+    </div>
+
+    <div><label for="presupuestoDeudas">Presupuesto mensual total para pagar las deudas incluidas en la simulación (COP)</label><input id="presupuestoDeudas" type="number" min="1" step="1" required placeholder="Define cuánto destinarás a estas obligaciones" /></div>
     <form id="formDeuda">
       <div class="columnas">
         <div><label for="deudaEntidad">Entidad / producto</label>
-          <select id="deudaEntidad"><option>Lulo Bank</option><option>Colpatria</option><option>Tarjeta de crédito</option><option>Sobregiro</option><option>Fintech</option><option>Otro</option></select>
+          <select id="deudaEntidad"><option>Lulo Bank</option><option>Colpatria</option><option>Solventa</option><option>Tarjeta de crédito</option><option>Sobregiro</option><option>Fintech</option><option>Otro</option></select>
         </div>
         <div><label for="deudaNombre">Nombre o referencia</label><input id="deudaNombre" placeholder="Ej. Crédito rotativo / cupo" /></div>
       </div>
       <div class="columnas-3">
-        <div><label for="deudaSaldo">Saldo actual (COP)</label><input id="deudaSaldo" type="number" min="1" step="1" required placeholder="Ej. 2500000" /></div>
-        <div><label for="deudaInicial">Valor inicial (COP, opcional)</label><input id="deudaInicial" type="number" min="0" step="1" placeholder="Ej. 4000000" /></div>
-        <div><label for="deudaTasa">Tasa efectiva anual (%)</label><input id="deudaTasa" type="number" min="0" max="500" step="0.01" required placeholder="Ej. 30" /></div>
+        <div><label for="deudaSaldo">Saldo / valor a pagar (COP)</label><input id="deudaSaldo" type="number" min="1" step="0.01" required placeholder="Ej. 2500000" /></div>
+        <div><label for="deudaInicial">Valor inicial / solicitado (COP)</label><input id="deudaInicial" type="number" min="0" step="0.01" placeholder="Opcional" /></div>
+        <div><label for="deudaCupo">Cupo autorizado (COP)</label><input id="deudaCupo" type="number" min="0" step="0.01" placeholder="Solo tarjetas / cupos" /></div>
       </div>
       <div class="columnas-3">
-        <div><label for="deudaPlazo">Plazo restante (meses)</label><input id="deudaPlazo" type="number" min="1" max="600" step="1" required placeholder="Ej. 18" /></div>
-        <div><label for="deudaMinimo">Pago mínimo mensual (COP)</label><input id="deudaMinimo" type="number" min="0" step="1" placeholder="Opcional: estimar cuota" /></div>
-        <div><label>Pago mensual</label><p class="nota" style="padding:9px 0">Se toma del presupuesto total indicado arriba.</p></div>
+        <div><label for="deudaTasa">Tasa efectiva anual (%)</label><input id="deudaTasa" type="number" min="0" max="500" step="0.01" placeholder="Ej. 24.87" /></div>
+        <div><label for="deudaPlazo">Plazo / horizonte del plan (meses)</label><input id="deudaPlazo" type="number" min="1" max="600" step="1" required placeholder="Ej. 12" /></div>
+        <div><label for="deudaMinimo">Pago mínimo mensual (COP)</label><input id="deudaMinimo" type="number" min="0" step="0.01" placeholder="Opcional" /></div>
       </div>
-      <p class="nota">Si no conoces el pago mínimo, déjalo en cero: se estimará una cuota fija para amortizar el saldo en el plazo indicado. El presupuesto mensual es el monto total disponible para todas las deudas registradas.</p>
-      <div class="acciones"><button type="submit" style="width:auto">+ Agregar deuda</button><button type="button" id="limpiarDeudas" class="secundario" style="width:auto">Limpiar deudas</button></div>
+      <div class="columnas">
+        <label class="check-deuda"><input id="deudaTasaPendiente" type="checkbox"> Tasa por confirmar (no se calculará hasta ingresarla)</label>
+        <label class="check-deuda"><input id="deudaSaldoPendiente" type="checkbox"> Saldo por confirmar (se excluye del total y simulación)</label>
+        <label class="check-deuda"><input id="deudaProyectada" type="checkbox"> Obligación proyectada / aún no desembolsada</label>
+      </div>
+      <p class="nota">Si no conoces el pago mínimo, se estimará una cuota fija para el plazo u horizonte indicado. En tarjetas sin plazo contractual, puedes usar un horizonte objetivo de liquidación. Las obligaciones con saldo sin confirmar y los créditos proyectados se muestran, pero no entran al saldo confirmado ni a la comparación hasta completar sus datos.</p>
+      <div class="acciones"><button type="submit" id="guardarDeudaBtn" style="width:auto">+ Agregar deuda</button><button type="button" id="cancelarEdicionDeuda" class="secundario" style="width:auto" hidden>Cancelar edición</button><button type="button" id="limpiarDeudas" class="secundario" style="width:auto">Limpiar deudas</button></div>
     </form>
     <h3>Obligaciones registradas</h3>
     <div id="listaDeudas"><p class="nota">Aún no has agregado deudas.</p></div>
     <div class="acciones" style="margin-top:12px"><button type="button" id="calcularDeudas" style="width:auto">Calcular estrategia de liquidación</button></div>
     <div id="resultadoDeudas" hidden>
       <div class="deuda-resumen">
-        <div class="deuda-kpi"><span>Deuda total actual</span><strong id="deudaTotalKpi">—</strong></div>
+        <div class="deuda-kpi"><span>Saldo confirmado · obligaciones activas</span><strong id="deudaTotalKpi">—</strong></div>
         <div class="deuda-kpi"><span>Intereses estimados</span><strong id="deudaInteresesKpi">—</strong></div>
         <div class="deuda-kpi"><span>Tiempo para quedar libre</span><strong id="deudaTiempoKpi">—</strong></div>
       </div>
@@ -936,13 +970,17 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
       <div class="tabla"><table><caption>Proyección mensual de pagos (estrategia recomendada)</caption><thead><tr><th>Mes</th><th>Saldo pendiente</th><th>Pago total</th><th>Interés del mes</th></tr></thead><tbody id="tablaCronograma"></tbody></table></div>
       <div class="integracion-deuda">
         <h3>Registrar un pago real en tu presupuesto</h3>
-        <p class="nota">El simulador es independiente, pero puedes llevar cada abono real al historial de movimientos. Al registrarlo, quedará incluido en el presupuesto principal, los respaldos JSON y la sincronización Firebase.</p>
+        <p class="nota">Registra el pago total como gasto del presupuesto. Al relacionarlo con una obligación, puedes indicar cuánto fue abono a capital; solo esa parte reducirá el saldo en el módulo de deudas. Intereses, seguros y cargos no reducen capital.</p>
         <div class="columnas-3">
           <div><label for="pagoRealFecha">Fecha del pago</label><input id="pagoRealFecha" type="date"></div>
           <div><label for="pagoRealImporte">Valor pagado (COP)</label><input id="pagoRealImporte" type="number" min="1" step="1" placeholder="Ej. 350000"></div>
           <div><label for="pagoRealMedio">Medio</label><select id="pagoRealMedio"><option>Cuenta</option><option>Efectivo</option><option>Cesantías</option></select></div>
         </div>
-        <label for="pagoRealConcepto">Concepto / entidad</label><input id="pagoRealConcepto" placeholder="Ej. Abono Lulo Bank">
+        <div class="columnas">
+          <div><label for="pagoRealDeuda">Obligación relacionada</label><select id="pagoRealDeuda"><option value="">Solo registrar el gasto</option></select></div>
+          <div><label for="pagoRealCapital">Abono a capital (COP, opcional)</label><input id="pagoRealCapital" type="number" min="0" step="1" placeholder="Solo la parte que reduce saldo"></div>
+        </div>
+        <label for="pagoRealConcepto">Concepto / entidad</label><input id="pagoRealConcepto" placeholder="Ej. Cuota Lulo Bank">
         <div class="acciones"><button type="button" id="registrarPagoDeuda" style="width:auto">Registrar pago en presupuesto</button></div>
       </div>
       <p class="nota">Proyección orientativa: supone pagos mensuales constantes y tasas EA constantes. No incorpora seguros, cuotas de manejo, mora, impuestos, cargos futuros ni reglas particulares de cada producto. Verifica el pago mínimo y el saldo de cancelación con cada entidad.</p>
@@ -1879,7 +1917,6 @@ const copiar = x => JSON.parse(JSON.stringify(x));
 
 const PESTANAS = [
   ["resumen","Resumen"],
-  ["deudas","Deudas inteligentes"],
   ["registrar","Registrar"],
   ["historial","Historial"],
   ["analisis","Análisis histórico"],
@@ -1887,7 +1924,8 @@ const PESTANAS = [
   ["presupuestos","Presupuestos"],
   ["fondo","Fondo"],
   ["respaldos","Sincronizar / Respaldos"],
-  ["escenario","Resumen ajustado"]
+  ["escenario","Resumen ajustado"],
+  ["deudas","Deudas inteligentes"]
 ];
 
 const GRUPOS_BASE = [
@@ -4565,6 +4603,7 @@ function actualizar(){
   mostrarAnalisisHistorico();
   mostrarComida();
   mostrarFondo();
+  if(typeof pintarContextoRespaldoDeudas==="function") pintarContextoRespaldoDeudas();
   if(filasCarga.length) resumenCarga();
 }
 
@@ -4572,10 +4611,12 @@ function actualizar(){
 // MÓDULO DE DEUDAS: INDEPENDIENTE + INTEGRADO CON PRESUPUESTO / NUBE
 const CLAVE_DEUDAS = "miPresupuesto.deudas.v1";
 let deudas = [];
+let deudaEnEdicion = null;
 let ultimaSimulacionDeudas = null;
-const monedaDeuda = n => "$ " + Math.round(n || 0).toLocaleString("es-CO");
+const monedaDeuda = n => "$ " + (Number(n)||0).toLocaleString("es-CO",{minimumFractionDigits:0,maximumFractionDigits:2});
+function paqueteDeudas(){return {deudas,presupuesto:Number($("presupuestoDeudas").value)||0,semillaInicializada:true};}
 function guardarDeudas(){
-  const paquete={deudas,presupuesto:Number($("presupuestoDeudas").value)||0};
+  const paquete=paqueteDeudas();
   try{localStorage.setItem(CLAVE_DEUDAS,JSON.stringify(paquete));}
   catch(e){mensaje("No fue posible guardar el módulo de deudas localmente: "+e.message,true);}
   // La copia principal hace que las deudas viajen en respaldos y Firebase.
@@ -4585,19 +4626,153 @@ function guardarDeudas(){
     guardarEstado(siguiente);
   }
 }
+function crearDeudasIniciales(){
+  return [
+    {entidad:"Lulo Bank",nombre:"Crédito · 49 cuotas restantes (22 de 71 pagadas)",saldo:3460930.07,inicial:4288187.84,cupo:0,tasa:24.87,tasaConfirmada:true,plazo:49,minimo:0,estado:"activa",saldoConfirmado:true,pagado:2595189.15,cuotasPagadas:22,cuotasTotales:71,tasaMesVencido:1.87,nota:"En el respaldo, el presupuesto del ciclo nov 2026 asigna $515.484 a Lulo Bank; es un pago presupuestado/registrado, no un nuevo saldo."},
+    {entidad:"Colpatria",nombre:"Tarjeta de crédito · TARJETA SOBREGIRADA · PRIORIDAD",saldo:4382000,saldoReportado:4382000,inicial:0,cupo:3700000,tasa:null,tasaConfirmada:false,plazo:12,minimo:291000,estado:"activa",saldoConfirmado:true,sobrecupo:true,pagoMinimoConfirmado:true,nota:"Saldo total informado: $4.382.000 frente a cupo de $3.700.000; excedente de $682.000. Pago mínimo de noviembre: $291.000. Prioridad de regularización por estar sobregirada. Confirmar tasa EA y cargos por exceder cupo."},
+    {entidad:"Solventa",nombre:"Nuevo préstamo · una cuota · pendiente de desembolso",saldo:1200000,inicial:1200000,cupo:0,tasa:null,tasaConfirmada:false,plazo:1,minimo:0,estado:"proyectada",saldoConfirmado:true,nota:"Préstamo futuro por $1.200.000. En el respaldo también existe un pago anterior a Solventa por $745.335 en nov 2026; se mantiene como movimiento histórico separado."}
+  ];
+}
+function normalizarDeudasImportadas(lista){
+  return (Array.isArray(lista)?lista:[]).map(d=>{
+    const x={...d};
+    // En versiones anteriores $681.598 se había guardado como saldo de Colpatria,
+    // aunque el usuario lo había descrito como gasto/importe por confirmar.
+    if(x.entidad==="Colpatria" && (x.saldo===681598 || x.saldoReportado===681598)){
+      x.nombre="Tarjeta de crédito · TARJETA SOBREGIRADA · PRIORIDAD";
+      x.saldo=4382000;
+      x.saldoReportado=4382000;
+      x.cupo=3700000;
+      x.minimo=291000;
+      x.saldoConfirmado=true;
+      x.sobrecupo=true;
+      x.pagoMinimoConfirmado=true;
+      x.tasa=null;
+      x.tasaConfirmada=false;
+      x.nota="Saldo total informado: $4.382.000 frente a cupo de $3.700.000; excedente de $682.000. Pago mínimo de noviembre: $291.000. Prioridad de regularización por estar sobregirada. Confirmar tasa EA y cargos por exceder cupo.";
+    }
+    if(x.saldoConfirmado===undefined)x.saldoConfirmado=true;
+    return x;
+  });
+}
+function categoriasDeudaPresupuesto(){
+  return ["Otras Deudas","Colpatria","Lulo Bank"];
+}
+function datosFlujoDeuda(c){
+  const categorias=categoriasDeudaPresupuesto();
+  const plan={};
+  categorias.forEach(k=>plan[k]=Number(c?.gastos?.[k])||0);
+  const movimientos=movimientosCiclo(c).filter(m=>categorias.includes(m.categoria));
+  const real={};categorias.forEach(k=>real[k]=0);
+  movimientos.forEach(m=>real[m.categoria]+=(Number(m.importe)||0));
+  return {plan,real,movimientos,totalPlan:Object.values(plan).reduce((a,b)=>a+b,0),totalReal:Object.values(real).reduce((a,b)=>a+b,0)};
+}
+function pintarContextoRespaldoDeudas(){
+  const avisoSobrecupo=$("avisoSobrecupoDeuda");
+  if(avisoSobrecupo){
+    avisoSobrecupo.textContent="Colpatria: saldo informado $4.382.000 frente a cupo $3.700.000 (sobrecupo $682.000). Mantener al día el mínimo de $291.000 y confirmar tasa/cargos. Es una prioridad operativa para regularizar el cupo; la prioridad matemática por interés se recalculará al conocer la tasa.";
+  }
+  const sel=$("cicloContextoDeudas");
+  if(!sel||!datos||!Array.isArray(datos.ciclos))return;
+  const previo=sel.value;
+  sel.replaceChildren();
+  datos.ciclos.forEach(c=>sel.add(new Option(c.nombre,c.id)));
+  let elegido=datos.ciclos.find(c=>c.id===previo);
+  if(!elegido)elegido=datos.ciclos.find(c=>hoy()>=c.inicio&&hoy()<c.fin)||datos.ciclos[0];
+  sel.value=elegido.id;
+
+  const tbody=$("tablaFlujoDeudas");tbody.replaceChildren();
+  datos.ciclos.forEach(c=>{
+    const f=datosFlujoDeuda(c),tr=document.createElement("tr");
+    [c.nombre,monedaDeuda(f.plan["Otras Deudas"]),monedaDeuda(f.plan.Colpatria),monedaDeuda(f.plan["Lulo Bank"]),monedaDeuda(f.totalPlan),monedaDeuda(f.totalReal)]
+      .forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td);});
+    tbody.appendChild(tr);
+  });
+
+  const ciclo=datos.ciclos.find(c=>c.id===sel.value)||elegido;
+  const f=datosFlujoDeuda(ciclo);
+  $("resumenContextoDeudas").textContent=
+    "Asignado en presupuesto: "+monedaDeuda(f.totalPlan)+
+    " · Pagos registrados: "+monedaDeuda(f.totalReal)+
+    " · Diferencia: "+monedaDeuda(f.totalPlan-f.totalReal)+
+    " · "+f.movimientos.length+" movimiento(s)";
+  const tb=$("tablaMovimientosDeuda");tb.replaceChildren();
+  if(!f.movimientos.length){
+    const tr=document.createElement("tr"),td=document.createElement("td");
+    td.colSpan=4;td.textContent="No hay pagos registrados en estas categorías para este ciclo.";
+    tr.appendChild(td);tb.appendChild(tr);
+  }else{
+    f.movimientos.slice().sort((a,b)=>(fechaISO(b.fecha)||"").localeCompare(fechaISO(a.fecha)||"")).forEach(m=>{
+      const tr=document.createElement("tr");
+      [m.categoria,m.concepto,m.fecha,monedaDeuda(m.importe)].forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td);});
+      tb.appendChild(tr);
+    });
+  }
+  const btn=$("usarAsignacionCicloDeudas");
+  if(btn)btn.dataset.cicloId=ciclo.id;
+}
+function actualizarSelectorPagoDeuda(){
+  const sel=$("pagoRealDeuda");if(!sel)return;
+  const elegido=sel.value;sel.replaceChildren();
+  const sin=document.createElement("option");sin.value="";sin.textContent="Solo registrar el gasto";sel.appendChild(sin);
+  deudas.forEach((d,i)=>{const op=document.createElement("option");op.value=String(i);op.textContent=(d.entidad||"Deuda")+(d.nombre?" · "+d.nombre:"");sel.appendChild(op);});
+  if([...sel.options].some(o=>o.value===elegido))sel.value=elegido;
+}
+function limpiarFormularioDeuda(){
+  deudaEnEdicion=null;
+  ["deudaNombre","deudaSaldo","deudaInicial","deudaCupo","deudaTasa","deudaPlazo","deudaMinimo"].forEach(id=>$(id).value="");
+  $("deudaEntidad").value="Lulo Bank";
+  $("deudaTasaPendiente").checked=false;
+  $("deudaTasa").disabled=false;
+  $("deudaSaldoPendiente").checked=false;
+  $("deudaProyectada").checked=false;
+  $("guardarDeudaBtn").textContent="+ Agregar deuda";
+  $("cancelarEdicionDeuda").hidden=true;
+}
+function editarDeuda(i){
+  const d=deudas[i];if(!d)return;
+  deudaEnEdicion=i;
+  $("deudaEntidad").value=d.entidad;
+  $("deudaNombre").value=d.nombre||"";
+  $("deudaSaldo").value=d.saldo;
+  $("deudaInicial").value=d.inicial||"";
+  $("deudaCupo").value=d.cupo||"";
+  $("deudaTasa").value=d.tasa==null?"":d.tasa;
+  $("deudaTasaPendiente").checked=d.tasa==null||d.tasaConfirmada===false;
+  $("deudaTasa").disabled=$("deudaTasaPendiente").checked;
+  $("deudaSaldoPendiente").checked=d.saldoConfirmado===false;
+  $("deudaPlazo").value=d.plazo||12;
+  $("deudaMinimo").value=d.minimo||"";
+  $("deudaProyectada").checked=d.estado==="proyectada";
+  $("guardarDeudaBtn").textContent="Guardar cambios";
+  $("cancelarEdicionDeuda").hidden=false;
+  $("deudaNombre").focus();
+}
 function pintarDeudas(){
   const cont=$("listaDeudas");cont.replaceChildren();
   if(!deudas.length){const p=document.createElement("p");p.className="nota";p.textContent="Aún no has agregado deudas.";cont.appendChild(p);return;}
   deudas.forEach((d,i)=>{
     const item=document.createElement("div");item.className="deuda-item";
     const txt=document.createElement("div");txt.className="deuda-txt";
-    const strong=document.createElement("strong");strong.textContent=d.entidad+(d.nombre?" · "+d.nombre:"");
-    const small=document.createElement("small");small.textContent=monedaDeuda(d.saldo)+" saldo actual"+(d.inicial>0?" · Inicial: "+monedaDeuda(d.inicial):"")+" · "+d.tasa.toLocaleString("es-CO")+"% EA · "+d.plazo+" meses";
+    const strong=document.createElement("strong");strong.textContent=(d.sobrecupo?"⚠ PRIORIDAD · ":"")+(d.entidad||"Obligación")+(d.nombre?" · "+d.nombre:"");
+    const small=document.createElement("small");
+    const tasaTxt=(d.tasa==null||d.tasaConfirmada===false)?"Tasa EA por confirmar":(Number(d.tasa).toLocaleString("es-CO")+"% EA");
+    const cupoTxt=d.cupo>0?" · Cupo: "+monedaDeuda(d.cupo):"";
+    const estadoTxt=d.estado==="proyectada"?" · PROYECTADA":" · ACTIVA";
+    const plazoTxt=d.plazo?" · Horizonte: "+d.plazo+" mes(es)":"";
+    const progresoTxt=d.cuotasTotales?" · Cuotas pagadas: "+d.cuotasPagadas+"/"+d.cuotasTotales+" · Pagado: "+monedaDeuda(d.pagado):"";
+    const tasaMensualTxt=d.tasaMesVencido?" · Mes vencido: "+d.tasaMesVencido+"%":"";
+    const saldoTxt=d.saldoConfirmado===false?"Importe reportado: "+monedaDeuda(d.saldoReportado??d.saldo)+" · SALDO POR CONFIRMAR":monedaDeuda(d.saldo)+" saldo";
+    const notaTxt=d.notaPlazo?" · "+d.notaPlazo:(d.nota?" · "+d.nota:"");
+    small.textContent=saldoTxt+cupoTxt+" · "+tasaTxt+plazoTxt+progresoTxt+tasaMensualTxt+estadoTxt+(d.inicial>0?" · Inicial: "+monedaDeuda(d.inicial):"")+notaTxt;
     txt.append(strong,small);
-    const del=document.createElement("button");del.type="button";del.className="peligro";del.textContent="Quitar";del.setAttribute("aria-label","Quitar "+d.entidad);
-    del.onclick=()=>{deudas.splice(i,1);guardarDeudas();pintarDeudas();$("resultadoDeudas").hidden=true;ultimaSimulacionDeudas=null;};
-    item.append(txt,del);cont.appendChild(item);
+    const acciones=document.createElement("div");acciones.className="acciones-deuda";
+    const edit=document.createElement("button");edit.type="button";edit.className="secundario";edit.textContent="Editar";edit.onclick=()=>editarDeuda(i);
+    const del=document.createElement("button");del.type="button";del.className="peligro";del.textContent="Quitar";del.setAttribute("aria-label","Quitar "+(d.entidad||"obligación"));
+    del.onclick=()=>{deudas.splice(i,1);if(deudaEnEdicion===i)limpiarFormularioDeuda();guardarDeudas();pintarDeudas();$("resultadoDeudas").hidden=true;ultimaSimulacionDeudas=null;};
+    acciones.append(edit,del);item.append(txt,acciones);cont.appendChild(item);
   });
+  actualizarSelectorPagoDeuda();
 }
 function cuotaFija(saldo,tasaMensual,n){
   if(n<=0)return saldo;
@@ -4605,9 +4780,9 @@ function cuotaFija(saldo,tasaMensual,n){
   const factor=Math.pow(1+tasaMensual,n);
   return saldo*(tasaMensual*factor)/(factor-1);
 }
-function simularPlanDeudas(metodo,presupuesto){
-  const items=deudas.map((d,i)=>{
-    const rm=Math.pow(1+d.tasa/100,1/12)-1;
+function simularPlanDeudas(metodo,presupuesto,lista=deudas){
+  const items=lista.map((d,i)=>{
+    const rm=Math.pow(1+Number(d.tasa)/100,1/12)-1;
     const base=d.minimo>0?d.minimo:cuotaFija(d.saldo,rm,d.plazo);
     return {...d,index:i,rm,base,intereses:0,mesSalida:null};
   });
@@ -4624,18 +4799,12 @@ function simularPlanDeudas(metodo,presupuesto){
     items.forEach((d,i)=>{if(saldos[i]>0.5){const it=saldos[i]*d.rm;saldos[i]+=it;d.intereses+=it;interesMes+=it;}});
     interesTotal+=interesMes;
     let disponible=presupuesto;
-    // Se cubren pagos base; el dinero liberado por obligaciones canceladas se redistribuye.
     items.forEach((d,i)=>{if(saldos[i]>0.5){const pago=Math.min(saldos[i],d.base,disponible);saldos[i]-=pago;disponible-=pago;if(saldos[i]<=0.5&&!d.mesSalida)d.mesSalida=mes;}});
     const orden=items.filter((d,i)=>saldos[i]>0.5).sort((a,b)=>{
       if(metodo==="avalancha")return b.tasa-a.tasa || a.saldo-b.saldo;
-      return a.saldo-b.saldo || b.tasa-a.tasa;
+      return saldos[a.index]-saldos[b.index] || b.tasa-a.tasa;
     });
-    for(const d of orden){
-      if(disponible<=0.5)break;
-      const i=d.index,pago=Math.min(saldos[i],disponible);
-      saldos[i]-=pago;disponible-=pago;
-      if(saldos[i]<=0.5&&!d.mesSalida)d.mesSalida=mes;
-    }
+    for(const d of orden){if(disponible<=0.5)break;const i=d.index,pago=Math.min(saldos[i],disponible);saldos[i]-=pago;disponible-=pago;if(saldos[i]<=0.5&&!d.mesSalida)d.mesSalida=mes;}
     cronograma.push({mes,saldo:saldos.reduce((a,b)=>a+b,0),pago:presupuesto-disponible,interes:interesMes});
     if(disponible>=presupuesto-0.01&&saldos.some(x=>x>0.5))break;
   }
@@ -4643,13 +4812,29 @@ function simularPlanDeudas(metodo,presupuesto){
 }
 function calcularEstrategiaDeudas(){
   const presupuesto=Number($("presupuestoDeudas").value)||0;
-  if(!deudas.length){mensaje("Agrega al menos una deuda para calcular.",true);return;}
   if(!(presupuesto>0)){mensaje("Ingresa un presupuesto mensual válido para las deudas.",true);return;}
-  const avalancha=simularPlanDeudas("avalancha",presupuesto);
-  const nieve=simularPlanDeudas("nieve",presupuesto);
+  const simulables=deudas.filter(d=>d.estado!=="proyectada"&&d.saldoConfirmado!==false&&Number(d.saldo)>0);
+  const excluidas=deudas.filter(d=>d.estado==="proyectada"||d.saldoConfirmado===false);
   $("resultadoDeudas").hidden=false;
-  $("deudaTotalKpi").textContent=monedaDeuda(deudas.reduce((s,d)=>s+d.saldo,0));
+  $("deudaTotalKpi").textContent=monedaDeuda(simulables.reduce((s,d)=>s+Number(d.saldo||0),0));
   $("tablaEstrategia").replaceChildren();$("tablaCronograma").replaceChildren();$("tablaComparacion").replaceChildren();
+  if(!simulables.length){
+    $("deudaInteresesKpi").textContent="—";$("deudaTiempoKpi").textContent="—";
+    $("mensajeEstrategia").className="aviso";
+    $("mensajeEstrategia").textContent="No hay obligaciones activas con saldo confirmado para simular. Completa los saldos o activa los créditos proyectados cuando correspondan.";
+    $("recomendacionDeuda").textContent="No se generó recomendación con saldos incompletos.";
+    ultimaSimulacionDeudas=null;return;
+  }
+  const tasasPendientes=simulables.filter(d=>d.tasa==null||d.tasaConfirmada===false);
+  if(tasasPendientes.length){
+    $("deudaInteresesKpi").textContent="Por confirmar";$("deudaTiempoKpi").textContent="Por confirmar";
+    $("mensajeEstrategia").className="aviso";
+    $("mensajeEstrategia").textContent="Completa la tasa EA de estas obligaciones con saldo confirmado: "+tasasPendientes.map(d=>(d.entidad+(d.nombre?" · "+d.nombre:""))).join(", ")+".";
+    $("recomendacionDeuda").textContent="Los saldos desconocidos y los préstamos proyectados se excluyen del total confirmado y de esta simulación.";
+    ultimaSimulacionDeudas=null;return;
+  }
+  const avalancha=simularPlanDeudas("avalancha",presupuesto,simulables);
+  const nieve=simularPlanDeudas("nieve",presupuesto,simulables);
   if(!avalancha.viable||!nieve.viable){
     $("deudaInteresesKpi").textContent="—";$("deudaTiempoKpi").textContent="—";
     $("mensajeEstrategia").className="aviso";
@@ -4667,12 +4852,9 @@ function calcularEstrategiaDeudas(){
   $("deudaInteresesKpi").textContent=monedaDeuda(recomendada.intereses);
   $("deudaTiempoKpi").textContent=recomendada.terminado?recomendada.meses+" meses":"Más de 600 meses";
   $("mensajeEstrategia").className="aviso-ok";
-  $("mensajeEstrategia").textContent="Comparación completada. Se muestran los resultados de "+nombre(recomendada)+" porque genera el menor interés estimado con los datos ingresados.";
+  $("mensajeEstrategia").textContent="Comparación completada para las obligaciones activas con saldo y tasa confirmados. Se recomienda "+nombre(recomendada)+" por su menor interés estimado.";
   $("recomendacionDeuda").textContent="Recomendación matemática: "+nombre(recomendada)+". Diferencia estimada frente a la otra estrategia: "+monedaDeuda(Math.abs(avalancha.intereses-nieve.intereses))+" en intereses. La bola de nieve puede ser útil si priorizas motivación y cierres rápidos, aunque no siempre minimiza el costo.";
-  const orden=recomendada.items.slice().sort((a,b)=>{
-    if(recomendada.metodo==="avalancha")return b.tasa-a.tasa||a.saldo-b.saldo;
-    return a.saldo-b.saldo||b.tasa-a.tasa;
-  });
+  const orden=recomendada.items.slice().sort((a,b)=>recomendada.metodo==="avalancha"?(b.tasa-a.tasa||a.saldo-b.saldo):(a.saldo-b.saldo||b.tasa-a.tasa));
   orden.forEach((d,i)=>{
     const tr=document.createElement("tr");
     [String(i+1),d.entidad+(d.nombre?" · "+d.nombre:""),d.tasa.toLocaleString("es-CO")+"%",monedaDeuda(d.base),monedaDeuda(d.intereses),d.mesSalida?"Mes "+d.mesSalida:"—"].forEach((v,j)=>{const td=document.createElement("td");td.textContent=v;if(j===0)td.className="numero";tr.appendChild(td);});
@@ -4683,41 +4865,76 @@ function calcularEstrategiaDeudas(){
     ["Mes "+r.mes,monedaDeuda(r.saldo),monedaDeuda(r.pago),monedaDeuda(r.interes)].forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td);});
     $("tablaCronograma").appendChild(tr);
   });
+  if(excluidas.length){
+    const nombres=excluidas.map(d=>(d.entidad||"Obligación")+(d.estado==="proyectada"?" (proyectada)":" (saldo por confirmar)"));
+    $("mensajeEstrategia").textContent+=" No incluye: "+nombres.join(", ")+". Esta comparación es parcial hasta confirmar esos datos.";
+  }
   if(!recomendada.terminado)$("mensajeEstrategia").textContent+=" La simulación no amortiza todas las obligaciones en 600 meses; revisa pagos y tasas.";
   ultimaSimulacionDeudas={recomendada,avalancha,nieve,presupuesto};
 }
 $("formDeuda").addEventListener("submit",e=>{
   e.preventDefault();
-  const saldo=Number($("deudaSaldo").value),tasa=Number($("deudaTasa").value),plazo=Number($("deudaPlazo").value),inicial=Number($("deudaInicial").value)||0,minimo=Number($("deudaMinimo").value)||0;
-  if(!(saldo>0)||tasa<0||tasa>500||!(plazo>=1)||plazo>600||minimo<0){mensaje("Revisa saldo, tasa, plazo y pago mínimo.",true);return;}
-  deudas.push({entidad:$("deudaEntidad").value,nombre:$("deudaNombre").value.trim(),saldo,inicial,tasa,plazo,minimo});
-  guardarDeudas();pintarDeudas();$("resultadoDeudas").hidden=true;ultimaSimulacionDeudas=null;
-  ["deudaNombre","deudaSaldo","deudaInicial","deudaTasa","deudaPlazo","deudaMinimo"].forEach(id=>$(id).value="");
-  $("deudaSaldo").focus();
+  const saldo=Number($("deudaSaldo").value),tasaPendiente=$("deudaTasaPendiente").checked,saldoPendiente=$("deudaSaldoPendiente").checked,tasa=tasaPendiente?null:Number($("deudaTasa").value),plazo=Number($("deudaPlazo").value),inicial=Number($("deudaInicial").value)||0,cupo=Number($("deudaCupo").value)||0,minimo=Number($("deudaMinimo").value)||0;
+  if(!(saldo>0)||(!tasaPendiente&&($("deudaTasa").value.trim()===""||!Number.isFinite(tasa)||tasa<0||tasa>500))||!(plazo>=1)||plazo>600||minimo<0||cupo<0){mensaje("Revisa saldo, tasa, plazo, cupo y pago mínimo.",true);return;}
+  const anterior=deudaEnEdicion==null?{}:deudas[deudaEnEdicion];
+  const nuevo={...anterior,entidad:$("deudaEntidad").value,nombre:$("deudaNombre").value.trim(),saldo,saldoReportado:saldoPendiente?saldo:null,saldoConfirmado:!saldoPendiente,inicial,cupo,tasa,tasaConfirmada:!tasaPendiente,plazo,minimo,estado:$("deudaProyectada").checked?"proyectada":"activa"};
+  if(deudaEnEdicion==null)deudas.push(nuevo);else deudas[deudaEnEdicion]=nuevo;
+  guardarDeudas();pintarDeudas();$("resultadoDeudas").hidden=true;ultimaSimulacionDeudas=null;limpiarFormularioDeuda();
 });
+$("cancelarEdicionDeuda").onclick=limpiarFormularioDeuda;
 $("calcularDeudas").onclick=()=>{guardarDeudas();calcularEstrategiaDeudas();};
 $("presupuestoDeudas").addEventListener("change",guardarDeudas);
-$("limpiarDeudas").onclick=()=>{if(confirm("¿Eliminar todas las deudas registradas en este módulo?")){deudas=[];guardarDeudas();pintarDeudas();$("resultadoDeudas").hidden=true;ultimaSimulacionDeudas=null;}};
+$("cicloContextoDeudas").addEventListener("change",pintarContextoRespaldoDeudas);
+$("usarAsignacionCicloDeudas").onclick=()=>{
+  const ciclo=datos.ciclos.find(c=>c.id===$("cicloContextoDeudas").value);
+  if(!ciclo)return;
+  const flujo=datosFlujoDeuda(ciclo);
+  if(flujo.totalPlan<=0){mensaje("Este ciclo no tiene una asignación presupuestada en Otras Deudas, Colpatria o Lulo Bank.",true);return;}
+  $("presupuestoDeudas").value=Math.round(flujo.totalPlan);
+  guardarDeudas();
+  mensaje("Se cargó "+monedaDeuda(flujo.totalPlan)+" del ciclo "+ciclo.nombre+". Es presupuesto asignado a pagos programados, no dinero adicional libre; confirma que cubra únicamente las obligaciones de la simulación.");
+};
+$("deudaTasaPendiente").addEventListener("change",()=>{$("deudaTasa").disabled=$("deudaTasaPendiente").checked;});
+$("deudaTasa").disabled=$("deudaTasaPendiente").checked;
+$("limpiarDeudas").onclick=()=>{if(confirm("¿Eliminar todas las deudas registradas en este módulo?")){deudas=[];guardarDeudas();pintarDeudas();$("resultadoDeudas").hidden=true;ultimaSimulacionDeudas=null;limpiarFormularioDeuda();}};
 $("pagoRealFecha").value=hoy();
 $("registrarPagoDeuda").onclick=()=>{
   if(!disponible||ocupado){mensaje("Espera a que la aplicación termine de cargar.",true);return;}
   const fecha=$("pagoRealFecha").value,importe=Number($("pagoRealImporte").value),medio=$("pagoRealMedio").value;
   const concepto=$("pagoRealConcepto").value.trim()||"Pago de deuda";
-  if(!interpretarISO(fecha)||!Number.isSafeInteger(importe)||importe<=0){mensaje("Ingresa una fecha válida y un valor pagado en pesos enteros.",true);return;}
+  const deudaIdx=$("pagoRealDeuda").value;
+  const capital=$("pagoRealCapital").value.trim()===""?0:Number($("pagoRealCapital").value);
+  if(!interpretarISO(fecha)||!Number.isSafeInteger(importe)||importe<=0||!Number.isSafeInteger(capital)||capital<0||capital>importe){mensaje("Ingresa una fecha válida, un pago en pesos enteros y un abono a capital que no supere el pago total.",true);return;}
   const categoriasGasto=listaGastos();
-  const categoria=categoriasGasto.includes("Otros gastos")?"Otros gastos":(categoriasGasto[0]||"");
+  const deudaRelacionada=deudaIdx===""?null:deudas[Number(deudaIdx)];
+  if(deudaIdx!==""&&!deudaRelacionada){mensaje("Selecciona una obligación válida.",true);return;}
+  if(capital>0&&(!deudaRelacionada||capital>deudaRelacionada.saldo)){mensaje("Para reducir saldo, selecciona una deuda y no ingreses un abono a capital mayor al saldo pendiente.",true);return;}
+  let categoria="Otras Deudas";
+  if(deudaRelacionada){
+    if(deudaRelacionada.entidad==="Lulo Bank")categoria="Lulo Bank";
+    else if(deudaRelacionada.entidad==="Colpatria")categoria="Colpatria";
+    else categoria="Otras Deudas";
+  }
+  if(!categoriasGasto.includes(categoria)){
+    categoria=categoriasGasto.includes("Otras Deudas")?"Otras Deudas":(categoriasGasto[0]||"");
+  }
   if(!categoria){mensaje("No hay categorías de gasto disponibles en el presupuesto.",true);return;}
   const siguiente=copiar(datos);
   siguiente.compras.unshift({fecha:visible(fecha),concepto,categoria,importe,medio,nota:"Pago de deuda registrado desde Deudas inteligentes."});
+  const deudasSiguientes=deudas.map(d=>({...d}));
+  if(capital>0&&deudaIdx!=="")deudasSiguientes[Number(deudaIdx)].saldo=Math.max(0,deudasSiguientes[Number(deudaIdx)].saldo-capital);
+  siguiente.moduloDeudas={deudas:deudasSiguientes,presupuesto:Number($("presupuestoDeudas").value)||0,semillaInicializada:true};
   if(!guardarEstado(siguiente))return;
-  actualizar();
-  $("pagoRealImporte").value="";$("pagoRealConcepto").value="";
-  mensaje("Pago registrado en el presupuesto principal: "+concepto+" · "+pesos(importe)+". Quedó guardado para respaldos y sincronización.");
+  deudas=deudasSiguientes;
+  try{localStorage.setItem(CLAVE_DEUDAS,JSON.stringify(siguiente.moduloDeudas));}catch(e){console.warn("No se pudo guardar la copia local de deudas",e);}
+  actualizar();pintarDeudas();
+  $("pagoRealImporte").value="";$("pagoRealCapital").value="";$("pagoRealConcepto").value="";
+  mensaje("Pago registrado en el presupuesto principal: "+concepto+" · "+pesos(importe)+(capital>0?". Saldo reducido en "+pesos(capital):". No se modificó el saldo de la obligación")+". Incluido en respaldos y sincronización.");
 };
 try{
   const guardadoDeudas=JSON.parse(localStorage.getItem(CLAVE_DEUDAS)||"null");
   if(guardadoDeudas&&Array.isArray(guardadoDeudas.deudas)){
-    deudas=guardadoDeudas.deudas;
+    deudas=normalizarDeudasImportadas(guardadoDeudas.deudas);
     if(guardadoDeudas.presupuesto)$("presupuestoDeudas").value=guardadoDeudas.presupuesto;
     pintarDeudas();
   }
@@ -5775,21 +5992,27 @@ try{
   disponible = true;
 
   // Prioriza la copia sincronizable; migra el almacenamiento local de la versión anterior.
-  const paqueteDeudas=datos.moduloDeudas;
-  if(paqueteDeudas && Array.isArray(paqueteDeudas.deudas)){
-    deudas=paqueteDeudas.deudas;
-    $("presupuestoDeudas").value=paqueteDeudas.presupuesto||"";
+  const paqueteGuardado=datos.moduloDeudas;
+  let legado=null;
+  if(!(paqueteGuardado&&Array.isArray(paqueteGuardado.deudas))){
+    try{legado=JSON.parse(localStorage.getItem(CLAVE_DEUDAS)||"null");}
+    catch(e){console.warn("No se pudieron migrar los datos del módulo de deudas",e);}
+  }
+  const fuente=(paqueteGuardado&&Array.isArray(paqueteGuardado.deudas))?paqueteGuardado:legado;
+  if(fuente&&Array.isArray(fuente.deudas)&&(fuente.deudas.length>0||fuente.semillaInicializada)){
+    deudas=normalizarDeudasImportadas(fuente.deudas);
+    $("presupuestoDeudas").value=fuente.presupuesto||"";
     pintarDeudas();
+    if(fuente!==paqueteGuardado||JSON.stringify(fuente.deudas)!==JSON.stringify(deudas)){
+      const migrado=copiar(datos);
+      migrado.moduloDeudas={...fuente,deudas};
+      guardarEstado(migrado);
+    }
   }else{
-    try{
-      const legado=JSON.parse(localStorage.getItem(CLAVE_DEUDAS)||"null");
-      if(legado&&Array.isArray(legado.deudas)){
-        deudas=legado.deudas;
-        $("presupuestoDeudas").value=legado.presupuesto||"";
-        pintarDeudas();
-        const migrado=copiar(datos);migrado.moduloDeudas=legado;guardarEstado(migrado);
-      }
-    }catch(e){console.warn("No se pudieron migrar los datos del módulo de deudas",e);}
+    // Carga inicial basada en los importes compartidos por el usuario. Tasas no suministradas quedan pendientes.
+    deudas=crearDeudasIniciales();
+    pintarDeudas();
+    guardarDeudas();
   }
 
   const actual=datos.ciclos.find(c => hoy()>=c.inicio && hoy()<c.fin)||
