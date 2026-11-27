@@ -499,6 +499,17 @@ th:first-child,td:first-child{text-align:left}
 .clickable-row td:first-child::after{content:" ↗";font-size:11px;color:var(--acento);opacity:0;transition:opacity .15s}
 .clickable-row:hover td:first-child::after{opacity:1}
 
+/* Tabla comparativa y comida diaria compactas (escritorio y móvil) */
+.tabla-resumen th,.tabla-resumen td,
+.tabla-comida th,.tabla-comida td{padding:6px 10px}
+.tabla-resumen .cat-cabecera,
+.tabla-comida .comida-cabecera{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.tabla-resumen .cat-nombre,
+.tabla-comida .comida-fecha{font-weight:600;color:var(--tinta)}
+.tabla-comida .comida-meta{font-size:11px;color:var(--tinta-suave)}
+.tabla-resumen .detalle{margin-top:0;font-size:11px}
+.tabla-resumen .barra{height:4px;margin-top:4px}
+
 /* Historial y movimientos */
 .acciones{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .acciones button{width:auto;padding:6px 12px;font-size:12.5px;margin-top:0}
@@ -716,6 +727,101 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
   .btn-guardar-principal,.btn-cancelar-principal{
     width:100%;padding:14px 18px;font-size:16px;min-height:48px;
   }
+  .tabla-resumen thead{display:none}
+  .tabla-resumen table,.tabla-resumen tbody{display:block;width:100%}
+  .tabla-resumen tr{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:4px 6px;
+    padding:8px 10px;
+    border-bottom:1px solid var(--borde);
+  }
+  .tabla-resumen tbody tr:last-child{border-bottom:none}
+  .tabla-resumen td{
+    display:block;
+    padding:0;
+    border:none;
+    text-align:left;
+  }
+  .tabla-resumen td:first-child{
+    grid-column:1 / -1;
+    margin-bottom:2px;
+  }
+  .tabla-resumen td.numero{
+    font-size:12px;
+    font-weight:700;
+  }
+  .tabla-resumen td.numero::before{
+    content:attr(data-label);
+    display:block;
+    font-size:9.5px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    color:var(--tinta-suave);
+  }
+  .tabla-resumen td.col-exceso-cero{display:none}
+  .tabla-resumen td.col-exceso-activo{
+    grid-column:1 / -1;
+    margin-top:2px;
+    padding-top:3px;
+    border-top:1px dashed var(--rojo-borde);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .tabla-resumen td.col-exceso-activo::before{
+    display:inline;
+    color:var(--rojo);
+  }
+
+  .tabla-comida thead{display:none}
+  .tabla-comida table,.tabla-comida tbody{display:block;width:100%}
+  .tabla-comida tr{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:4px 6px;
+    padding:8px 10px;
+    border-bottom:1px solid var(--borde);
+  }
+  .tabla-comida tbody tr:last-child{border-bottom:none}
+  .tabla-comida td{
+    display:block;
+    padding:0;
+    border:none;
+    text-align:left;
+  }
+  .tabla-comida td:first-child{
+    grid-column:1 / -1;
+    margin-bottom:2px;
+  }
+  .tabla-comida td.numero{
+    font-size:12px;
+    font-weight:700;
+  }
+  .tabla-comida td.numero::before{
+    content:attr(data-label);
+    display:block;
+    font-size:9.5px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    color:var(--tinta-suave);
+  }
+  .tabla-comida td.col-ocultar-movil{display:none}
+  .tabla-comida td.col-exceso-dia-activo{
+    grid-column:1 / -1;
+    margin-top:2px;
+    padding-top:3px;
+    border-top:1px dashed var(--rojo-borde);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .tabla-comida td.col-exceso-dia-activo::before{
+    display:inline;
+    color:var(--rojo);
+  }
 }
 </style>
 </head>
@@ -799,7 +905,7 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
       Una categoría sin registros puede tener gastos pendientes.
     </p>
 
-    <div class="tabla">
+    <div class="tabla tabla-resumen">
       <table>
         <thead>
           <tr>
@@ -1372,7 +1478,7 @@ summary{cursor:pointer;font-weight:600;color:var(--acento)}
       Un día sin registros no confirma ahorro. No es saldo bancario.
     </p>
 
-    <div class="tabla">
+    <div class="tabla tabla-comida">
       <table>
         <thead>
           <tr>
@@ -2630,14 +2736,21 @@ function mostrarResumen(){
     fila.title="Ver los movimientos de "+categoria+" en el ciclo "+c.nombre;
     fila.onclick=() => irAHistorialConFiltro({ categoria, cicloId: c.id });
 
-    const nombre=celda(fila,categoria);
-    const lectura=document.createElement("div");
-    lectura.className="detalle";
+    const nombre=celda(fila,"");
+    const cab=document.createElement("div");
+    cab.className="cat-cabecera";
+    const spanCat=document.createElement("span");
+    spanCat.className="cat-nombre";
+    spanCat.textContent=categoria;
+
+    const lectura=document.createElement("span");
+    lectura.className="detalle"+(e ? " rojo" : "");
     lectura.textContent=!cantidades[categoria]
       ? "Sin registros"
-      : !p ? "Gasto sin presupuesto"
+      : !p ? "Sin presupuesto"
       : (100*r/p).toLocaleString("es-CO",{maximumFractionDigits:1})+
-        "% consumido"+(e ? " · Excedida" : "");
+        "%"+(e ? " · Excedida" : "");
+    cab.append(spanCat,lectura);
 
     const barra=document.createElement("div");
     barra.className="barra";
@@ -2645,11 +2758,15 @@ function mostrarResumen(){
     const relleno=document.createElement("div");
     relleno.style.width=(p ? Math.min(100,100*r/p) : r ? 100 : 0)+"%";
     barra.appendChild(relleno);
-    nombre.append(lectura,barra);
+    nombre.append(cab,barra);
 
+    const etiquetasCol=["Presupuesto","Gasto","Disponible","Exceso"];
     [p,r,p-r,e].forEach((n,i) => {
-      celda(fila,pesos(n),"numero"+
-        (((i===2 && n<0)||(i===3 && n>0)) ? " rojo" : ""));
+      const claseExtra = i===3
+        ? (n>0 ? " rojo col-exceso-activo" : " col-exceso-cero")
+        : (i===2 && n<0 ? " rojo" : "");
+      const td=celda(fila,pesos(n),"numero"+claseExtra);
+      td.dataset.label=etiquetasCol[i];
     });
     $("comparacion").appendChild(fila);
   });
@@ -3408,16 +3525,41 @@ function mostrarComida(){
     const fila=document.createElement("tr");
     if(f===fecha) fila.style.background="#ecfdf5";
 
-    celda(fila,visible(f));
-    celda(fila,item.cantidad ? pesos(item.suma) : "Sin registro","numero");
-    celda(fila,pesos(referencia),"numero");
-    celda(fila,pesos(acumulado),"numero");
-    celda(fila,pesos(referencia*(i+1)),"numero");
-    celda(fila,item.cantidad ? pesos(exceso) : "—",
-      "numero"+(exceso ? " rojo" : ""));
-    celda(fila,String(item.cantidad),"numero");
-    celda(fila,!item.cantidad ? "Sin registro"
-      : exceso ? "Sobre referencia diaria" : "Compra registrada");
+    const lecturaDia=!item.cantidad ? "Sin registro"
+      : exceso ? "Sobre referencia diaria" : "Compra registrada";
+
+    const tdFecha=celda(fila,"");
+    const cab=document.createElement("div");
+    cab.className="comida-cabecera";
+    const spanF=document.createElement("span");
+    spanF.className="comida-fecha";
+    spanF.textContent=visible(f)+(f===fecha ? " · Hoy revisado" : "");
+    const spanMeta=document.createElement("span");
+    spanMeta.className="comida-meta"+(exceso ? " rojo" : "");
+    spanMeta.textContent=item.cantidad
+      ? item.cantidad+" compra(s) · "+lecturaDia
+      : "Sin compras";
+    cab.append(spanF,spanMeta);
+    tdFecha.appendChild(cab);
+
+    const tdDia=celda(fila,item.cantidad ? pesos(item.suma) : "$ 0","numero");
+    tdDia.dataset.label="Comida del día";
+
+    const tdRef=celda(fila,pesos(referencia),"numero col-ocultar-movil");
+    tdRef.dataset.label="Ref. diaria";
+
+    const tdAcum=celda(fila,pesos(acumulado),"numero");
+    tdAcum.dataset.label="Acumulado";
+
+    const tdRitmo=celda(fila,pesos(referencia*(i+1)),"numero");
+    tdRitmo.dataset.label="Ritmo esperado";
+
+    const tdExc=celda(fila,item.cantidad ? pesos(exceso) : "—",
+      "numero"+(exceso ? " rojo col-exceso-dia-activo" : " col-ocultar-movil"));
+    tdExc.dataset.label="Exceso del día";
+
+    celda(fila,String(item.cantidad),"numero col-ocultar-movil");
+    celda(fila,lecturaDia,"col-ocultar-movil");
     $("diasComida").appendChild(fila);
   }
 }
